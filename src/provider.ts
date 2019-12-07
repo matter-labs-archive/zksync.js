@@ -192,12 +192,6 @@ export class ETHProxy {
         }
     }
 
-    async estimateDepositFeeInETHToken(token: Token): Promise<utils.BigNumber> {
-        const gasPrice = await this.ethersProvider.getGasPrice();
-        const multiplier = token == "ETH" ? 179000 : 214000;
-        return gasPrice.mul(2 * multiplier);
-    }
-
     async estimateEmergencyWithdrawFeeInETHToken(): Promise<utils.BigNumber> {
         const gasPrice = await this.ethersProvider.getGasPrice();
         return gasPrice.mul(2 * 170000);

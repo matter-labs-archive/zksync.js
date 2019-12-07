@@ -158,14 +158,14 @@ export async function depositFromETH(deposit: {
     amount: utils.BigNumberish;
     maxFeeInETHToken?: utils.BigNumberish;
 }): Promise<ETHOperation> {
+    const gasPrice = await deposit.depositFrom.provider.getGasPrice();
+    
     let maxFeeInETHToken;
     if (deposit.maxFeeInETHToken != null) {
         maxFeeInETHToken = deposit.maxFeeInETHToken;
     } else {
-        const baseFee = await deposit.depositTo.ethProxy.estimateDepositFeeInETHToken(
-            deposit.token
-        );
-        maxFeeInETHToken = baseFee.mul(115).div(100); // 15% higher that base fee.
+        const multiplier = deposit.token == "ETH" ? 179000 : 214000;
+        maxFeeInETHToken = gasPrice.mul(2 * multiplier);
     }
     const mainZkSyncContract = new Contract(
         deposit.depositTo.provider.contractAddress.mainContract,
@@ -181,7 +181,8 @@ export async function depositFromETH(deposit: {
             deposit.depositTo.address(),
             {
                 value: utils.bigNumberify(deposit.amount).add(maxFeeInETHToken),
-                gasLimit: utils.bigNumberify("200000")
+                gasLimit: utils.bigNumberify("200000"),
+                gasPrice,
             }
         );
     } else {
@@ -202,7 +203,8 @@ export async function depositFromETH(deposit: {
             {
                 gasLimit: utils.bigNumberify("250000"),
                 value: maxFeeInETHToken,
-                nonce: approveTx.nonce + 1
+                nonce: approveTx.nonce + 1,
+                gasPrice,
             }
         );
     }
