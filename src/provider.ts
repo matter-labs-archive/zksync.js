@@ -15,6 +15,7 @@ import {
 } from "./types";
 import {
     sleep,
+    syncToLegacyAddress,
     SYNC_GOV_CONTRACT_INTERFACE,
     SYNC_MAIN_CONTRACT_INTERFACE
 } from "./utils";
@@ -76,7 +77,8 @@ export class Provider {
     }
 
     async getState(address: Address): Promise<AccountState> {
-        return await this.transport.request("account_info", [address]);
+        const legacyAddress = syncToLegacyAddress(address);
+        return await this.transport.request("account_info", [legacyAddress]);
     }
 
     // get transaction status by its hash (e.g. 0xdead..beef)

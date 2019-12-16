@@ -10,6 +10,7 @@ import {
     TransactionReceipt
 } from "./types";
 import {
+    syncToLegacyAddress,
     IERC20_INTERFACE,
     SYNC_MAIN_CONTRACT_INTERFACE,
     SYNC_PRIOR_QUEUE_INTERFACE
@@ -156,7 +157,7 @@ export async function depositFromETH(deposit: {
     depositTo: Wallet;
     token: Token;
     amount: utils.BigNumberish;
-    maxFeeInETHToken?: utils.BigNumberish;
+    maxFeeInETHToken?: utils.BigNumberish; // TODO: maybe rename?
 }): Promise<ETHOperation> {
     const gasPrice = await deposit.depositFrom.provider.getGasPrice();
     
@@ -178,7 +179,7 @@ export async function depositFromETH(deposit: {
     if (deposit.token == "ETH") {
         ethTransaction = await mainZkSyncContract.depositETH(
             deposit.amount,
-            deposit.depositTo.address(),
+            syncToLegacyAddress(deposit.depositTo.address()),
             {
                 value: utils.bigNumberify(deposit.amount).add(maxFeeInETHToken),
                 gasLimit: utils.bigNumberify("200000"),
@@ -199,7 +200,7 @@ export async function depositFromETH(deposit: {
         ethTransaction = await mainZkSyncContract.depositERC20(
             deposit.token,
             deposit.amount,
-            deposit.depositTo.address(),
+            syncToLegacyAddress(deposit.depositTo.address()),
             {
                 gasLimit: utils.bigNumberify("250000"),
                 value: maxFeeInETHToken,

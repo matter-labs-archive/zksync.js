@@ -7,7 +7,7 @@ import {
     signTransactionBytes
 } from "./crypto";
 import { utils } from "ethers";
-import { packAmountChecked, packFeeChecked } from "./utils";
+import { packAmountChecked, packFeeChecked, syncToLegacyAddress } from "./utils";
 import BN = require("bn.js");
 import { Address, CloseAccount, Transfer, Withdraw } from "./types";
 
@@ -24,7 +24,7 @@ export class Signer {
     }
 
     address(): Address {
-        return `0x${pubkeyToAddress(this.publicKey).toString("hex")}`;
+        return `sync:${pubkeyToAddress(this.publicKey).toString("hex")}`;
     }
 
     signSyncTransfer(transfer: {
@@ -55,8 +55,8 @@ export class Signer {
 
         return {
             type: "Transfer",
-            from: this.address(),
-            to: transfer.to,
+            from: syncToLegacyAddress(this.address()),
+            to: syncToLegacyAddress(transfer.to),
             token: transfer.tokenId,
             amount: utils.bigNumberify(transfer.amount).toString(),
             fee: utils.bigNumberify(transfer.fee).toString(),
@@ -91,7 +91,7 @@ export class Signer {
         const signature = signTransactionBytes(this.privateKey, msgBytes);
         return {
             type: "Withdraw",
-            account: this.address(),
+            account: syncToLegacyAddress(this.address()),
             ethAddress: withdraw.ethAddress,
             token: withdraw.tokenId,
             amount: utils.bigNumberify(withdraw.amount).toString(),
@@ -111,7 +111,7 @@ export class Signer {
 
         return {
             type: "Close",
-            account: this.address(),
+            account: syncToLegacyAddress(this.address()),
             nonce: close.nonce,
             signature
         };
@@ -154,10 +154,20 @@ export class Signer {
 
 // Sync or eth address
 function serializeAddress(address: Address | string): Buffer {
-    const addressBytes = Buffer.from(address.substr(2), "hex");
-    if (addressBytes.length != 20) {
-        throw new Error("Address should be 20 bytes long");
+    const prefixlessAddress
+        = address.startsWith('0x')    ? address.substr(2)
+        : address.startsWith('sync:') ? address.substr(5)
+        : null;
+    
+    if (prefixlessAddress === null) {
+        throw new Error("ETH address must start with '0x' and Sync address start with 'sync:'")
     }
+
+    const addressBytes = Buffer.from(prefixlessAddress, "hex");
+    if (addressBytes.length != 20) {
+        throw new Error("Address must be 20 bytes long");
+    }
+
     return addressBytes;
 }
 

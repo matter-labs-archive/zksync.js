@@ -10,7 +10,7 @@ const network =
     process.env.ETH_NETWORK == "localhost" ? "localhost" : "testnet";
 
 function shortAddr(address: string): string {
-    return `${address.substr(0, 6)}`;
+    return `${address.substr(0, 10)}`;
 }
 
 async function logSyncBalance(
@@ -20,9 +20,9 @@ async function logSyncBalance(
 ) {
     const balance = formatEther(await wallet.getBalance(token, type));
     console.log(
-        `SYNC:${shortAddr(
-            wallet.address()
-        )} ${type} balance: ${balance} ${token}`
+        `SYNC:${
+            shortAddr(wallet.address())
+        } ${type} balance: ${balance} ${token}`
     );
 }
 
@@ -91,9 +91,9 @@ async function logETHBalance(wallet: ethers.Wallet, token: zksync.types.Token) {
 
     console.log("==================================");
     console.log(
-        `Transfer: ${depositAmount} ${depositToken}: SYNC:${shortAddr(
-            syncWallet.address()
-        )} -> SYNC:${shortAddr(syncWallet2.address())}`
+        `Transfer: ${depositAmount} ${depositToken}: SYNC:${
+            shortAddr(syncWallet.address())
+        } -> SYNC:${shortAddr(syncWallet2.address())}`
     );
     await logSyncBalance(syncWallet, depositToken, "committed");
     await logSyncBalance(syncWallet2, depositToken, "committed");
@@ -115,9 +115,9 @@ async function logETHBalance(wallet: ethers.Wallet, token: zksync.types.Token) {
 
     console.log("==================================");
     console.log(
-        `Withdraw: ${depositAmount} ${depositToken}: SYNC:${shortAddr(
-            syncWallet.address()
-        )} -> ETH:${shortAddr(ethWallet2.address)}`
+        `Withdraw: ${depositAmount} ${depositToken}: SYNC:${
+            shortAddr(syncWallet.address())
+        } -> ETH:${shortAddr(ethWallet2.address)}`
     );
     await logSyncBalance(syncWallet2, depositToken);
     await logETHBalance(ethWallet2, depositToken);

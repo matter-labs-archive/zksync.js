@@ -1,6 +1,7 @@
 import BN = require("bn.js");
 import { utils } from "ethers";
 import { bigNumberify } from "ethers/utils";
+import { Address } from './types';
 
 export const IERC20_INTERFACE = new utils.Interface(
     require("../abi/IERC20.json").interface
@@ -264,4 +265,12 @@ export function buffer2bitsBE(buff) {
 
 export function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+export function syncToLegacyAddress(address: Address) {
+    if (address.startsWith('sync:') == false) {
+        throw new Error(`Sync address must start with 'sync:'`);
+    }
+
+    return `0x${address.substr(5)}`;
 }
