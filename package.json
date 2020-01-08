@@ -37,6 +37,7 @@
     "lint:ts-fix": "tslint -c tslint.json --fix {examples,test,src}/**/*.ts",
     "test": "mocha -r ts-node/register tests/**/*.test.ts",
     "fmt": "prettier --tab-width 4 --parser typescript --write \"{src,tests,examples}/*.ts\"",
-    "build": "tsc"
+    "build": "tsc",
+    "prepack": "yarn && tsc"
   }
 }

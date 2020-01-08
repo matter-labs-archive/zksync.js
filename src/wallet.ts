@@ -168,6 +168,7 @@ export async function depositFromETH(deposit: {
     token: Token;
     amount: utils.BigNumberish;
     maxFeeInETHToken?: utils.BigNumberish;
+    overrideOptions?: ethers.providers.TransactionRequest;
 }): Promise<ETHOperation> {
     const gasPrice = await deposit.depositFrom.provider.getGasPrice();
     
@@ -197,6 +198,7 @@ export async function depositFromETH(deposit: {
                 value: utils.bigNumberify(deposit.amount).add(maxFeeInETHToken),
                 gasLimit: utils.bigNumberify("200000"),
                 gasPrice,
+                ...deposit.overrideOptions,
             }
         );
     } else {
@@ -208,8 +210,10 @@ export async function depositFromETH(deposit: {
         );
         const approveTx = await erc20contract.approve(
             deposit.depositTo.provider.contractAddress.mainContract,
-            deposit.amount
+            deposit.amount,
+            deposit.overrideOptions
         );
+
         ethTransaction = await mainZkSyncContract.depositERC20(
             deposit.token,
             deposit.amount,
