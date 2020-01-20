@@ -42,8 +42,8 @@ export interface Transfer {
 
 export interface Withdraw {
     type: "Withdraw";
-    account: Address;
-    ethAddress: string;
+    from: Address;
+    to: Address;
     token: number;
     amount: utils.BigNumberish;
     fee: utils.BigNumberish;

@@ -28,6 +28,7 @@ export class Signer {
     }
 
     signSyncTransfer(transfer: {
+        from: Address,
         to: Address;
         tokenId: number;
         amount: utils.BigNumberish;
@@ -35,7 +36,7 @@ export class Signer {
         nonce: number;
     }): Transfer {
         const type = Buffer.from([5]); // tx type
-        const from = serializeAddress(this.address());
+        const from = serializeAddress(transfer.from);
         const to = serializeAddress(transfer.to);
         const token = serializeTokenId(transfer.tokenId);
         const amount = serializeAmountPacked(transfer.amount);
@@ -55,7 +56,7 @@ export class Signer {
 
         return {
             type: "Transfer",
-            from: this.address(),
+            from: transfer.from,
             to: transfer.to,
             token: transfer.tokenId,
             amount: utils.bigNumberify(transfer.amount).toString(),
@@ -66,6 +67,7 @@ export class Signer {
     }
 
     signSyncWithdraw(withdraw: {
+        from: Address,
         ethAddress: string;
         tokenId: number;
         amount: utils.BigNumberish;
@@ -73,7 +75,7 @@ export class Signer {
         nonce: number;
     }): Withdraw {
         const typeBytes = Buffer.from([3]);
-        const accountBytes = serializeAddress(this.address());
+        const accountBytes = serializeAddress(withdraw.from);
         const ethAddressBytes = serializeAddress(withdraw.ethAddress);
         const tokenIdBytes = serializeTokenId(withdraw.tokenId);
         const amountBytes = serializeAmountFull(withdraw.amount);
@@ -91,8 +93,8 @@ export class Signer {
         const signature = signTransactionBytes(this.privateKey, msgBytes);
         return {
             type: "Withdraw",
-            account: this.address(),
-            ethAddress: withdraw.ethAddress,
+            from: withdraw.from,
+            to: withdraw.ethAddress,
             token: withdraw.tokenId,
             amount: utils.bigNumberify(withdraw.amount).toString(),
             fee: utils.bigNumberify(withdraw.fee).toString(),
@@ -117,32 +119,6 @@ export class Signer {
         };
     }
 
-    syncEmergencyWithdrawSignature(emergencyWithdraw: {
-        accountId: number;
-        ethAddress: string;
-        tokenId: number;
-        nonce: number;
-    }): Buffer {
-        const type = Buffer.from([6]);
-        const packed_pubkey = serializePointPacked(this.publicKey);
-        const account_id = serializeAccountId(emergencyWithdraw.accountId);
-        const eth_address = serializeAddress(emergencyWithdraw.ethAddress);
-        const token = serializeTokenId(emergencyWithdraw.tokenId);
-        const nonce = serializeNonce(emergencyWithdraw.nonce);
-        const msg = Buffer.concat([
-            type,
-            account_id,
-            packed_pubkey,
-            eth_address,
-            token,
-            nonce
-        ]);
-        return Buffer.from(
-            signTransactionBytes(this.privateKey, msg).signature,
-            "hex"
-        );
-    }
-
     static fromPrivateKey(pk: BN): Signer {
         return new Signer(pk);
     }
@@ -153,7 +129,7 @@ export class Signer {
 }
 
 // Sync or eth address
-function serializeAddress(address: Address | string): Buffer {
+export function serializeAddress(address: Address | string): Buffer {
     const prefixlessAddress
         = address.startsWith('0x')    ? address.substr(2)
         : address.startsWith('sync:') ? address.substr(5)
@@ -211,7 +187,7 @@ function serializeFeePacked(fee: utils.BigNumberish): Buffer {
     return packFeeChecked(bnFee);
 }
 
-function serializeNonce(nonce: number): Buffer {
+export function serializeNonce(nonce: number): Buffer {
     if (nonce < 0) {
         throw new Error("Negative nonce");
     }
